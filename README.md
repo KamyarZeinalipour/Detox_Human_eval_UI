@@ -58,7 +58,7 @@ This is a data annotation tool built with [Gradio](https://gradio.app/) that all
    pip install -r requirements.txt
    ```
 
-   If you don't have a `requirements.txt` file, you can install the packages individually:
+   Or you can install the packages individually:
 
    ```bash
    pip install gradio pandas fire
