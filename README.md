@@ -1,4 +1,4 @@
-# Data Annotation Tool For Detoxfication Project
+# Data Annotation Tool For Detoxification Project
 
 This is a data annotation tool built with [Gradio](https://gradio.app/) that allows annotators to label and rate text data for tasks such as toxicity classification and transformation suggestions. The tool provides an interactive web interface where annotators can read data points, provide ratings, suggest classes, and suggest transformations. Annotations are saved to a CSV file for further processing.
 
