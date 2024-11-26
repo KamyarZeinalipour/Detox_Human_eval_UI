@@ -62,9 +62,10 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
         words = text.split()
         return len(words)
 
-    def store_annotation_and_get_next(curr_idx, rating, selected_classes, suggested_transformation, validate_btn):
+    # Added transformation_reason as an input parameter and in outputs
+    def store_annotation_and_get_next(curr_idx, rating, selected_classes, suggested_transformation, transformation_reason, validate_btn):
         if rating is None or rating == '':
-            return [curr_idx, gr.update(interactive=False), df_row['text'], df_row['Transformed'], df_row['Form'], df_row.get('Class', ''), gr.update(value=None), selected_classes, suggested_transformation]
+            return [curr_idx, gr.update(interactive=False), df_row['text'], df_row['Transformed'], df_row['Form'], df_row.get('Class', ''), gr.update(value=None), selected_classes, suggested_transformation, transformation_reason]
 
         # Check if no classes were selected
         if not selected_classes:
@@ -76,11 +77,14 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
         if not suggested_transformation:
             suggested_transformation = "No Suggestion"
 
+        if not transformation_reason:
+            transformation_reason = "No Suggestion"
+
         if os.path.exists(anns_filepath):
             anns_df = pd.read_csv(anns_filepath)
         else:
             cols = chunk_df.columns.tolist()
-            cols.extend(["timestamp", "rating", "annotator", "suggested_class", "suggested_transformation"])
+            cols.extend(["timestamp", "rating", "annotator", "suggested_class", "suggested_transformation", "transformation_reason"])
             anns_df = pd.DataFrame(columns=cols)
 
         row = chunk_df.iloc[curr_idx].to_dict()
@@ -89,15 +93,16 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
         row["annotator"] = annotator_name
         row["suggested_class"] = suggested_class
         row["suggested_transformation"] = suggested_transformation
+        row["transformation_reason"] = transformation_reason  # Store transformation reason
         anns_df = pd.concat((anns_df, pd.DataFrame(row, index=[0])), ignore_index=True)
         anns_df.to_csv(anns_filepath, index=False)
 
         next_idx = curr_idx + 1
         if next_idx < len(chunk_df):
             next_df_row = chunk_df.iloc[next_idx]
-            return [next_idx, gr.update(interactive=False), next_df_row['text'], next_df_row['Transformed'], next_df_row['Form'], next_df_row.get('Class', ''), gr.update(value=None), [], '']
+            return [next_idx, gr.update(interactive=False), next_df_row['text'], next_df_row['Transformed'], next_df_row['Form'], next_df_row.get('Class', ''), gr.update(value=None), [], '', '']
         else:
-            return [curr_idx, gr.update(interactive=False), "End of dataset", '[empty]', '[empty]', '', gr.update(value=None), [], '']
+            return [curr_idx, gr.update(interactive=False), "End of dataset", '[empty]', '[empty]', '', gr.update(value=None), [], '', '']
 
     # Function to enable or disable the Validate button based on the rating selection
     def enable_button(rating):
@@ -142,6 +147,8 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
                 transformed = gr.Textbox(value=df_row['Transformed'], label="Transformed", interactive=False)
                 Form = gr.Textbox(label="Form", interactive=False, value=df_row['Form'])
                 suggested_transformation = gr.Textbox(label="Suggested Transformation", interactive=True)
+                # Added a new textbox for Transformation Reason
+                transformation_reason = gr.Textbox(label="Transformation Reason", interactive=True)
                 rating_radio = gr.Radio(
                     ["A", "B", "C", "D", "E", "SKIPPING"], 
                     label="Rating"
@@ -162,10 +169,11 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
                 outputs=eval_btn
             )
 
+        # Modified inputs and outputs to include transformation_reason
         eval_btn.click(
             store_annotation_and_get_next,
-            inputs=[index, rating_radio, suggested_class, suggested_transformation, eval_btn],
-            outputs=[index, eval_btn, text, transformed, Form, Class, rating_radio, suggested_class, suggested_transformation]
+            inputs=[index, rating_radio, suggested_class, suggested_transformation, transformation_reason, eval_btn],
+            outputs=[index, eval_btn, text, transformed, Form, Class, rating_radio, suggested_class, suggested_transformation, transformation_reason]
         )
 
     demo.launch()
