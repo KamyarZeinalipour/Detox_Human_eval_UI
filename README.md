@@ -97,9 +97,9 @@ python your_script_name.py --annotator_name "Your Name" --examples_batch_folder 
 The CSV file provided in `examples_batch_folder` should have at least the following columns:
 
 - `text`: The original text data.
-- `Transformed` (optional): The transformed version of the text. If not available, it will be filled with `[empty]`.
-- `Form` (optional): The form or category of the text.
-- `Class` (optional): Existing class labels.
+- `Transformed`: The transformed version of the text. If not available, it will be filled with `[empty]`.
+- `Form`: The form or category of the text.
+- `Class`: Existing class labels.
 
 **Example CSV Format:**
 
