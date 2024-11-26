@@ -209,4 +209,4 @@ This project is licensed under the [MIT License](LICENSE.txt).
 
 ## Contact
 
-For any questions or issues, please contact [Kamyar Zeinalipour] at [Kzeinalipour@umass.edu].
+For any questions or issues, please contact Kamyar Zeinalipour at [Kzeinalipour@umass.edu].
