@@ -16,42 +16,74 @@ This repository provides a Gradio-based annotation interface for labeling and ra
 
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
+  - [Clone the Repository](#clone-the-repository)
+  - [Creating a Virtual Environment](#creating-a-virtual-environment)
+  - [Installing Required Packages](#installing-required-packages)
 - [Usage](#usage)
   - [Preparing Your Data](#preparing-your-data)
   - [Running the Annotation Interface](#running-the-annotation-interface)
   - [Using the Interface](#using-the-interface)
     - [Interface Overview](#interface-overview)
+    - [Steps for Annotation](#steps-for-annotation)
     - [Rating Definitions](#rating-definitions)
     - [Class Definitions](#class-definitions)
 - [Annotations Output](#annotations-output)
 - [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
 - [License](#license)
+- [Contact](#contact)
 - [Acknowledgments](#acknowledgments)
 
 ## Prerequisites
 
-- Python 3.x installed on your system.
-- The following Python packages:
-  - `pandas`
-  - `gradio`
-  - `fire`
+- **Python 3.x** installed on your system.
+- Ability to create and manage virtual environments in Python.
+- The required Python packages are listed in the `requirements.txt` file.
 
 ## Installation
 
-1. **Clone the Repository**
+### Clone the Repository
 
-   ```bash
-   git clone <repository_url>
-   cd <repository_folder>
-   ```
+```bash
+git clone <repository_url>
+cd <repository_folder>
+```
 
-2. **Install Required Packages**
+### Creating a Virtual Environment
 
-   Install the required Python packages using `pip`:
+It is recommended to use a virtual environment to manage the dependencies for this project.
 
-   ```bash
-   pip install pandas gradio fire
-   ```
+#### On macOS and Linux:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+#### On Windows:
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+### Installing Required Packages
+
+Install the required Python packages from the `requirements.txt` file using `pip`:
+
+```bash
+pip install -r requirements.txt
+```
+
+Ensure that the `requirements.txt` file contains the following packages:
+
+```txt
+pandas
+gradio
+fire
+```
+
+If you don't have a `requirements.txt` file, you can create one with the above content.
 
 ## Usage
 
@@ -175,7 +207,7 @@ After running the script, a web browser window or tab should open automatically,
 
 - **Interface Doesn't Launch**
 
-  - Ensure that all required packages are installed (`pandas`, `gradio`, `fire`).
+  - Ensure that all required packages are installed.
   - Check for any error messages in the terminal where you ran the script.
   - Manually open the URL provided in the terminal (usually `http://127.0.0.1:7860`).
 
@@ -195,16 +227,22 @@ After running the script, a web browser window or tab should open automatically,
   - Confirm that the annotations CSV file exists in the `annotations` folder.
   - Make sure you're running the script with the same `--annotator_name` and `--examples_batch_folder` arguments.
 
-## Troubleshooting
+- **Dependencies Issues**
 
-- **Dependencies Issues**: Ensure all required packages are installed and up to date.
-- **Port Conflicts**: If Gradio cannot launch due to a port conflict, specify a different port using the `server_port` parameter in `demo.launch()`.
+  - Ensure all required packages are installed and up to date.
+  - Use the `requirements.txt` file to manage dependencies.
 
-  ```python
-  demo.launch(server_port=7861)
-  ```
+- **Port Conflicts**
 
-- **Firewall Restrictions**: If accessing the interface remotely, ensure appropriate firewall settings are configured.
+  - If Gradio cannot launch due to a port conflict, specify a different port using the `server_port` parameter in `demo.launch()`.
+
+    ```python
+    demo.launch(server_port=7861)
+    ```
+
+- **Firewall Restrictions**
+
+  - If accessing the interface remotely, ensure appropriate firewall settings are configured.
 
 ## Contributing
 
@@ -217,7 +255,6 @@ This project is licensed under the [MIT License](LICENSE.txt).
 ## Contact
 
 For any questions or issues, please contact Kamyar Zeinalipour at [Kzeinalipour@umass.edu].
-
 
 ## Acknowledgments
 
