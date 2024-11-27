@@ -45,8 +45,8 @@ This repository provides a Gradio-based annotation interface for labeling and ra
 ### Clone the Repository
 
 ```bash
-git clone <repository_url>
-cd <repository_folder>
+git clone https://github.com/KamyarZeinalipour/Detox_Human_eval_UI.git
+cd Detox_Human_eval_UI
 ```
 
 ### Creating a Virtual Environment
