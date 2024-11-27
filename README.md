@@ -172,11 +172,9 @@ After running the script, a web browser window or tab should open automatically,
 
 #### Rating Definitions
 
-- **A**: The text is perfectly transformed to the target tone and fully preserves the original meaning.
-- **B**: The text is effectively transformed into the target tone with negligible changes in meaning.
-- **C**: The text has some effective tone transformation with minor meaning inconsistencies.
-- **D**: The text has limited tone transformation and alters some key meanings.
-- **E**: The text fails to change tone effectively and loses the original meaning.
+- **Rating-A**: *Gold Standard* - toxic text is detoxified, meaning is perfectly preserved, and the rewrite aligns with the target tone.
+- **Rating-B**: *Silver Standard* - toxic text is mostly detoxified, meaning is preserved, and the rewrite tends toward the target tone."
+- **Rating-F**: *Insufficient* - either toxicity remains, meanings are different, or the target tone is not achieved.
 - **SKIPPING**: Skip this entry if you cannot provide a rating.
 
 #### Class Definitions
