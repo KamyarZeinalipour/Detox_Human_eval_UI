@@ -1,192 +1,199 @@
 # Data Annotation Tool For Detoxification Project
 
-This is a data annotation tool built with [Gradio](https://gradio.app/) that allows annotators to label and rate text data for tasks such as toxicity classification and transformation suggestions. The tool provides an interactive web interface where annotators can read data points, provide ratings, suggest classes, and suggest transformations. Annotations are saved to a CSV file for further processing.
+This repository provides a Gradio-based annotation interface for labeling and rating transformed text data. The tool allows annotators to evaluate text transformations, suggest alternative transformations, classify texts into predefined categories, and provide comments.
 
 ## Features
 
-- **Interactive Web Interface**: Annotate data through a user-friendly Gradio web application.
-- **Resume Annotation**: Start from where you left off; the tool automatically resumes from the last annotated index.
-- **Flexible Annotation Options**:
-  - Provide ratings for each data point.
-  - Suggest classes from a predefined list.
-  - Suggest transformations for text data.
-- **Data Management**: Annotations are saved to a CSV file in the `annotations` directory.
-- **Customizable**: Easily modify or extend the tool to fit different annotation tasks.
+- Load and display text examples from a CSV file.
+- Annotate texts using an interactive web interface powered by Gradio.
+- Rate transformed texts based on predefined criteria.
+- Suggest alternative transformations for each text.
+- Classify texts into one or more predefined categories.
+- Save annotations to a CSV file for future analysis.
+- Resume annotations from where you left off.
 
-## Requirements
+## Table of Contents
 
-- Python 3.x
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Preparing Your Data](#preparing-your-data)
+  - [Running the Annotation Interface](#running-the-annotation-interface)
+  - [Using the Interface](#using-the-interface)
+    - [Interface Overview](#interface-overview)
+    - [Rating Definitions](#rating-definitions)
+    - [Class Definitions](#class-definitions)
+- [Annotations Output](#annotations-output)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+- [Acknowledgments](#acknowledgments)
+
+## Prerequisites
+
+- Python 3.x installed on your system.
 - The following Python packages:
-  - [gradio](https://gradio.app/)
-  - [pandas](https://pandas.pydata.org/)
-  - [fire](https://github.com/google/python-fire)
+  - `pandas`
+  - `gradio`
+  - `fire`
 
 ## Installation
 
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/yourusername/your-repo-name.git
-   cd your-repo-name
+   git clone <repository_url>
+   cd <repository_folder>
    ```
 
-2. **Create a Virtual Environment (Recommended)**
+2. **Install Required Packages**
 
-   Create a virtual environment to manage dependencies without affecting your global Python installation.
-
-   ```bash
-   python -m venv venv
-   ```
-
-   Activate the virtual environment:
-
-   - On Windows:
-
-     ```bash
-     venv\Scripts\activate
-     ```
-
-   - On macOS/Linux:
-
-     ```bash
-     source venv/bin/activate
-     ```
-
-3. **Install Dependencies**
+   Install the required Python packages using `pip`:
 
    ```bash
-   pip install -r requirements.txt
-   ```
-
-   Or you can install the packages individually:
-
-   ```bash
-   pip install gradio pandas fire
+   pip install pandas gradio fire
    ```
 
 ## Usage
 
-The script is designed to be run from the command line and will launch a Gradio web interface for annotation.
+### Preparing Your Data
 
-### Command-Line Arguments
+Prepare a CSV file containing the text examples you want to annotate. The CSV file should have the following columns:
 
-The script requires the following arguments:
+- `text`: The original text to be annotated.
+- `Neutral` (optional): The text transformed into a neutral tone.
+- `Formal` (optional): The text transformed into a formal tone.
+- `Friendly` (optional): The text transformed into a friendly tone.
+- `Class` (optional): The original class or category of the text.
 
-- `annotator_name` (required): The name of the annotator. This will be stored in the annotations.
-- `examples_batch_folder` (required): The path to the CSV file containing the batch of examples to annotate.
-- `current_index` (optional): The index from which to resume annotation. Defaults to `0`.
+Example of a CSV file (`examples.csv`):
 
-### Running the Script
-
-Navigate to the directory containing the script and run:
-
-```bash
-python your_script_name.py --annotator_name "Your Name" --examples_batch_folder /path/to/your/dataset.csv
+```csv
+text,Neutral,Formal,Friendly,Class
+"This is a sample text.","Neutral version of text.","Formal version of text.","Friendly version of text.","Original Class"
 ```
 
-Replace `your_script_name.py` with the actual name of the script file.
+### Running the Annotation Interface
 
-To resume from a specific index:
+Run the annotation interface using the following command:
 
 ```bash
-python your_script_name.py --annotator_name "Your Name" --examples_batch_folder /path/to/your/dataset.csv --current_index 10
+python script_name.py --annotator_name="Your Name" --examples_batch_folder="path/to/examples.csv"
 ```
 
-### Data File Format
+Replace `script_name.py` with the actual name of the script containing the provided code.
 
-The CSV file provided in `examples_batch_folder` should have at least the following columns:
+#### Command-Line Arguments
 
-- `text`: The original text data.
-- `Transformed`: The transformed version of the text. If not available, it will be filled with `[empty]`.
-- `Form`: The form or category of the text.
-- `Class`: Existing class labels.
+- `--annotator_name` (**Required**): Your name or identifier as the annotator.
+- `--examples_batch_folder` (**Required**): The path to the CSV file containing the examples to annotate.
+- `--current_index` (Optional): The index from which to start annotating (default is `0`). Use this if you want to resume from a specific point.
 
-**Example CSV Format:**
+### Using the Interface
 
-| text                | Transformed        | Form    | Class    |
-|---------------------|--------------------|---------|----------|
-| Original text here. | Transformed text.  | Form A  | Class 1  |
+After running the script, a web browser window or tab should open automatically, displaying the Gradio interface. If it doesn't open automatically, look for the local URL provided in the terminal and open it manually in your browser.
 
-### Launching the Web Interface
+#### Interface Overview
 
-After running the script, a Gradio web interface will launch automatically, and a local URL (e.g., `http://127.0.0.1:7860/`) will be displayed in the terminal. Open this URL in your web browser to start annotating.
+- **Text**: Displays the original text to be annotated.
+- **Class**: Shows the original class of the text if provided.
+- **Suggested Class**: You can select one or more classes that you think are appropriate for the text.
+- **Comments**: A field to add any comments or notes about the text or transformation.
+- **Transformed Neutral/Formal/Friendly**: Shows the text transformed into Neutral, Formal, and Friendly tones.
+- **Rating Neutral/Formal/Friendly**: Radio buttons to rate each transformed text based on the quality of transformation.
+- **Suggested Transformation Neutral/Formal/Friendly**: Fields to suggest alternative transformations for each tone.
 
-### Using the Web Interface
+#### Steps for Annotation
 
-1. **Text Fields**:
+1. **Review the Original Text**
 
-   - **Text**: Displays the original text data. (Non-editable)
-   - **Transformed**: Displays the transformed text. (Non-editable)
-   - **Form**: Displays the form or category of the text. (Non-editable)
-   - **Class**: Displays any existing class labels. (Non-editable)
+   Read the original text provided in the **Text** field.
 
-2. **Suggested Class**:
+2. **Review Transformed Texts**
 
-   - A checkbox group to select suggested classes.
-   - **Options**:
+   Examine the transformed versions in the **Transformed Neutral**, **Transformed Formal**, and **Transformed Friendly** fields.
 
-     - **Hate Speech**: Language that attacks or demeans individuals based on race, religion, gender, or other personal characteristics.
-     - **Threat**: Language expressing intent to cause harm or instill fear.
-     - **Insult**: Language that belittles or degrades an individual or group.
-     - **Profanity**: Obscene or offensive language not necessarily targeting anyone but considered inappropriate.
-     - **Misinformation**: False or misleading statements that could harm or mislead.
-     - **Discrimination**: Language that reinforces stereotypes or discriminates against a group.
-     - **Harassment**: Persistent or repeated language targeting or intimidating an individual or group.
-     - **Manipulation or Coercion**: Language intended to control, pressure, or exploit someone’s emotions or actions.
-     - **Not Toxic**: If the sentence is not toxic.
+3. **Assign Ratings**
 
-3. **Suggested Transformation**:
+   For each transformed text, select a rating based on the **Rating Definitions** provided below.
 
-   - A textbox to input any suggested transformations for the text data.
+4. **Suggest Transformations**
 
-4. **Rating**:
+   If you have suggestions for improving the transformation, you can provide them in the **Suggested Transformation** fields for each tone.
 
-   - A set of radio buttons to select the rating for the data point.
-   - **Options**:
+5. **Classify the Text**
 
-     - **Rating-A**: The text is perfectly classified, seamlessly transformed to the target tone, and fully preserves the original meaning.
-     - **Rating-B**: The text is accurately classified, effectively transformed into the target tone, and retains the original meaning with negligible changes.
-     - **Rating-C**: The text is mostly classified correctly, with some effective tone transformation and minor meaning inconsistencies.
-     - **Rating-D**: The text has partial classification errors, limited tone transformation, and alters some key meanings.
-     - **Rating-E**: The text is incorrectly classified, fails to change tone effectively, and loses the original meaning.
-     - **SKIPPING**: Skip this data point without annotating.
+   If applicable, select one or more classes from the **Suggested Class** options by checking the boxes.
 
-   - **Note**: The "Validate" button will be enabled only after selecting a rating.
+6. **Add Comments**
 
-5. **Validate Button**:
+   Provide any additional comments in the **Comments** field.
 
-   - Click to save the annotation and move to the next data point.
-   - If you haven't selected a rating, the button will remain disabled.
+7. **Validate**
 
-### Saving Annotations
+   Once all required fields are filled, click the **Validate** button to save the annotation and move to the next text.
 
-- Annotations are automatically saved to a CSV file in the `annotations` directory.
-- The filename is prefixed with `annotations_` followed by the dataset filename.
-- If the annotations file already exists, the script will append new annotations to it.
+   - The **Validate** button will be disabled until ratings for all transformed texts are provided.
 
-**Annotations CSV Format:**
+8. **Repeat**
 
-The annotations CSV will include the following columns:
+   Continue the process for each text until you reach the end of the dataset.
 
-- Original columns from the dataset (`text`, `Transformed`, `Form`, `Class`, etc.)
-- `timestamp`: The time when the annotation was made.
-- `rating`: The selected rating.
-- `annotator`: The name of the annotator.
-- `suggested_class`: The classes suggested by the annotator.
-- `suggested_transformation`: The transformation suggested by the annotator.
+#### Rating Definitions
 
-### Exiting and Resuming
+- **A**: The text is perfectly transformed to the target tone and fully preserves the original meaning.
+- **B**: The text is effectively transformed into the target tone with negligible changes in meaning.
+- **C**: The text has some effective tone transformation with minor meaning inconsistencies.
+- **D**: The text has limited tone transformation and alters some key meanings.
+- **E**: The text fails to change tone effectively and loses the original meaning.
+- **SKIPPING**: Skip this entry if you cannot provide a rating.
 
-- **Exit**: You can exit the script at any time by closing the terminal or stopping the script execution.
-- **Resume**: To resume annotation, run the script again with the same `annotator_name` and `examples_batch_folder`. The script will detect the existing annotations file and resume from the next unannotated index.
+#### Class Definitions
 
-## Customization
+- **Hate Speech**: Language that attacks or demeans individuals based on race, religion, gender, or other personal characteristics.
+- **Threat**: Language expressing intent to cause harm or instill fear.
+- **Insult**: Language that belittles or degrades an individual or group.
+- **Profanity**: Obscene or offensive language not necessarily targeting anyone but considered inappropriate.
+- **Misinformation**: False or misleading statements that could harm or mislead.
+- **Discrimination**: Language that reinforces stereotypes or discriminates against a group.
+- **Harassment**: Persistent or repeated language targeting or intimidating an individual or group.
+- **Manipulation or Coercion**: Language intended to control, pressure, or exploit someone’s emotions or actions.
+- **Not Toxic**: The text is not toxic.
 
-You can customize the tool according to your annotation needs:
+## Annotations Output
 
-- **Modify Classes**: Change the options in the `suggested_class` checkbox group.
-- **Update Rating Criteria**: Edit the descriptions of the rating options to fit your criteria.
-- **Extend Functionality**: Add more fields or modify the existing ones in the Gradio interface.
+- Annotations are saved in the `annotations` folder in the current working directory.
+- The filename is `annotations_<dataset_filename>.csv`, where `<dataset_filename>` is the name of your examples CSV file.
+- The annotation file includes all original data along with the new annotations:
+  - `timestamp`: The time when the annotation was made.
+  - `annotator`: The name of the annotator.
+  - `suggested_class`: The classes suggested by the annotator.
+  - `comments`: Any comments provided by the annotator.
+  - `Rating_Neutral/Formal/Friendly`: Ratings assigned to each transformed text.
+  - `Suggested_Transformation_Neutral/Formal/Friendly`: Suggested transformations for each tone.
+
+## Troubleshooting
+
+- **Interface Doesn't Launch**
+
+  - Ensure that all required packages are installed (`pandas`, `gradio`, `fire`).
+  - Check for any error messages in the terminal where you ran the script.
+  - Manually open the URL provided in the terminal (usually `http://127.0.0.1:7860`).
+
+- **Errors When Running the Script**
+
+  - Verify that the paths provided for the CSV files are correct.
+  - Ensure that the CSV file is properly formatted and readable.
+  - Make sure you're using the correct version of Python (Python 3.x).
+
+- **Annotations Not Saving**
+
+  - Ensure that you have write permissions in the directory where the script is running.
+  - Check for any error messages related to file I/O in the terminal.
+
+- **Resume Functionality Not Working**
+
+  - Confirm that the annotations CSV file exists in the `annotations` folder.
+  - Make sure you're running the script with the same `--annotator_name` and `--examples_batch_folder` arguments.
 
 ## Troubleshooting
 
@@ -210,3 +217,9 @@ This project is licensed under the [MIT License](LICENSE.txt).
 ## Contact
 
 For any questions or issues, please contact Kamyar Zeinalipour at [Kzeinalipour@umass.edu].
+
+
+## Acknowledgments
+
+- This tool utilizes [Gradio](https://gradio.app/) for the web interface.
+- Command-line argument handling is powered by [Python Fire](https://github.com/google/python-fire).
