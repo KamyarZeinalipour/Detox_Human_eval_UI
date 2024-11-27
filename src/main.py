@@ -154,19 +154,16 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
                 gr.Markdown("**[Manipulation or Coercion]**: Language intended to control, pressure, or exploit someone’s emotions or actions.")
                 gr.Markdown("**[Not Toxic]**: If the sentence is not toxic.")
                 gr.Markdown("**Ratings Definitions**:")
-                gr.Markdown("**Rating-A**: The text is perfectly transformed to the target tone and fully preserves the original meaning.")
-                gr.Markdown("**Rating-B**: The text is effectively transformed into the target tone with negligible changes in meaning.")
-                gr.Markdown("**Rating-C**: The text has some effective tone transformation with minor meaning inconsistencies.")
-                gr.Markdown("**Rating-D**: The text has limited tone transformation and alters some key meanings.")
-                gr.Markdown("**Rating-E**: The text fails to change tone effectively and loses the original meaning.")
+                gr.Markdown("**Rating-A**: *Gold Standard* - toxic text is detoxified, meaning is perfectly preserved, and the rewrite aligns with the target tone.")
+                gr.Markdown("**Rating-B**: *Silver Standard* - toxic text is mostly detoxified, meaning is preserved, and the rewrite tends toward the target tone.")
+                gr.Markdown("**Rating-F**: *Insufficient* - either toxicity remains, meanings are different, or the target tone is not achieved.")
                 gr.Markdown("**SKIPPING**: Skip this entry if you cannot provide a rating.")
 
-    
             with gr.Column():
                 # Transformed Neutral
                 transformed_neutral = gr.Textbox(value=df_row['Neutral'], label="Transformed Neutral", interactive=False)
                 rating_neutral = gr.Radio(
-                    ["A", "B", "C", "D", "E", "SKIPPING"], 
+                    ["A", "B", "F", "SKIPPING"], 
                     label="Rating Neutral"
                 )
                 suggested_transformation_neutral = gr.Textbox(label="Suggested Transformation Neutral", interactive=True)
@@ -174,7 +171,7 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
                 # Transformed Formal
                 transformed_formal = gr.Textbox(value=df_row['Formal'], label="Transformed Formal", interactive=False)
                 rating_formal = gr.Radio(
-                    ["A", "B", "C", "D", "E", "SKIPPING"], 
+                    ["A", "B", "F", "SKIPPING"], 
                     label="Rating Formal"
                 )
                 suggested_transformation_formal = gr.Textbox(label="Suggested Transformation Formal", interactive=True)
@@ -182,16 +179,10 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
                 # Transformed Friendly
                 transformed_friendly = gr.Textbox(value=df_row['Friendly'], label="Transformed Friendly", interactive=False)
                 rating_friendly = gr.Radio(
-                    ["A", "B", "C", "D", "E", "SKIPPING"], 
+                    ["A", "B", "F", "SKIPPING"], 
                     label="Rating Friendly"
                 )
                 suggested_transformation_friendly = gr.Textbox(label="Suggested Transformation Friendly", interactive=True)
-    
-                # Rating Definitions
-                # ...
-    
-                # Initialize the Validate button as non-interactive (disabled)
-                #eval_btn = gr.Button("Validate", interactive=False)
     
                 # Trigger enable_button when any rating_radio value changes
                 def update_validate_button(*args):
