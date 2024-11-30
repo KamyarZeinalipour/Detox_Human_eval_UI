@@ -154,9 +154,9 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
                 gr.Markdown("**[Manipulation or Coercion]**: Language intended to control, pressure, or exploit someone’s emotions or actions.")
                 gr.Markdown("**[Not Toxic]**: If the sentence is not toxic.")
                 gr.Markdown("**Ratings Definitions**:")
-                gr.Markdown("**Rating-A**: *Gold Standard* - toxic text is detoxified, meaning is perfectly preserved, and the rewrite aligns with the target tone.")
-                gr.Markdown("**Rating-B**: *Silver Standard* - toxic text is mostly detoxified, meaning is preserved, and the rewrite tends toward the target tone.")
-                gr.Markdown("**Rating-F**: *Insufficient* - either toxicity remains, meanings are different, or the target tone is not achieved.")
+                gr.Markdown("**Rating-A**: *Gold Standard* - The toxic text is rewritten to be as non-toxic as possible while perfectly preserving the original meaning, and the rewritten version aligns seamlessly with the target tone.")
+                gr.Markdown("**Rating-B**: *Silver Standard* - The toxic text is rewritten to be mostly non-toxic while largely preserving the original meaning, and the rewritten version approaches the target tone but may have minor imperfections.")
+                gr.Markdown("**Rating-F**: *Insufficient* - The toxic text remains inadequately rewritten, the meaning deviates significantly, or the rewritten version fails to achieve the target tone.")
                 gr.Markdown("**SKIPPING**: Skip this entry if you cannot provide a rating.")
 
             with gr.Column():
