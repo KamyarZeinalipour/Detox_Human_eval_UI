@@ -172,9 +172,9 @@ After running the script, a web browser window or tab should open automatically,
 
 #### Rating Definitions
 
-- **Rating-A**: *Gold Standard* - toxic text is detoxified, meaning is perfectly preserved, and the rewrite aligns with the target tone.
-- **Rating-B**: *Silver Standard* - toxic text is mostly detoxified, meaning is preserved, and the rewrite tends toward the target tone."
-- **Rating-F**: *Insufficient* - either toxicity remains, meanings are different, or the target tone is not achieved.
+- **Rating-A**: *Gold Standard* -  The toxic text is rewritten to be as non-toxic as possible while perfectly preserving the original meaning, and the rewritten version aligns seamlessly with the target tone.
+- **Rating-B**: *Silver Standard* - The toxic text is rewritten to be mostly non-toxic while largely preserving the original meaning, and the rewritten version approaches the target tone but may have minor imperfections.
+- **Rating-F**: *Insufficient* - The toxic text remains inadequately rewritten, the meaning deviates significantly, or the rewritten version fails to achieve the target tone.
 - **SKIPPING**: Skip this entry if you cannot provide a rating.
 
 #### Class Definitions
