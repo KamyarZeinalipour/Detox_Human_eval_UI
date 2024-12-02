@@ -21,8 +21,8 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
     _, dataset_filename = os.path.split(examples_batch_folder)
     chunk_df = pd.read_csv(examples_batch_folder)
     
-    # Ensure 'Neutral', 'Formal', 'Friendly' columns exist and fill NaN with '[empty]'
-    for col in ['Neutral', 'Formal', 'Friendly']:
+    # Ensure 'Neutral', 'Formal', 'Friendly', 'Classification Reason' columns exist and fill NaN with '[empty]'
+    for col in ['Neutral', 'Formal', 'Friendly', 'Classification Reason']:
         if col not in chunk_df.columns:
             chunk_df[col] = '[empty]'
         else:
@@ -43,18 +43,20 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
     def store_annotation_and_get_next(curr_idx, selected_classes, comments, 
                                       rating_neutral, suggested_transformation_neutral,
                                       rating_formal, suggested_transformation_formal,
-                                      rating_friendly, suggested_transformation_friendly):
+                                      rating_friendly, suggested_transformation_friendly,
+                                      classification_reason_rating):
         # Check if any rating is missing
-        if any(rating is None or rating == '' for rating in [rating_neutral, rating_formal, rating_friendly]):
+        if any(rating is None or rating == '' for rating in [rating_neutral, rating_formal, rating_friendly, classification_reason_rating]):
             # Optionally, display a warning message
-            # gr.warning("Please select ratings for all transformed texts.")
+            # gr.warning("Please select ratings for all transformed texts and classification reason.")
             return [curr_idx, gr.update(interactive=False), df_row['text'], 
                     df_row['Neutral'], df_row['Formal'], df_row['Friendly'], df_row.get('Class', ''), 
-                    selected_classes,comments, 
+                    selected_classes, comments, 
                     rating_neutral, suggested_transformation_neutral,
                     rating_formal, suggested_transformation_formal,
-                    rating_friendly, suggested_transformation_friendly]
-    
+                    rating_friendly, suggested_transformation_friendly,
+                    df_row.get('Classification Reason', ''), classification_reason_rating]
+
         # Process suggested classes
         if not selected_classes:
             suggested_class = "[Correct Classification]"
@@ -63,7 +65,7 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
 
         if not comments:
             comments = "No Comments"    
-    
+        
         # Handle suggested transformations
         if not suggested_transformation_neutral:
             suggested_transformation_neutral = "No Suggestion"
@@ -71,7 +73,7 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
             suggested_transformation_formal = "No Suggestion"
         if not suggested_transformation_friendly:
             suggested_transformation_friendly = "No Suggestion"
-    
+
         if os.path.exists(anns_filepath):
             anns_df = pd.read_csv(anns_filepath)
         else:
@@ -79,10 +81,11 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
             additional_cols = ["timestamp", "annotator", "suggested_class",  "comments",
                                "Rating_Neutral", "Suggested_Transformation_Neutral",
                                "Rating_Formal", "Suggested_Transformation_Formal",
-                               "Rating_Friendly", "Suggested_Transformation_Friendly"]
+                               "Rating_Friendly", "Suggested_Transformation_Friendly",
+                               "Classification Reason Rating"]
             cols.extend(additional_cols)
             anns_df = pd.DataFrame(columns=cols)
-    
+
         row = chunk_df.iloc[curr_idx].to_dict()
         row["timestamp"] = time.time()
         row["annotator"] = annotator_name
@@ -94,37 +97,52 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
         row["Suggested_Transformation_Formal"] = suggested_transformation_formal
         row["Rating_Friendly"] = rating_friendly
         row["Suggested_Transformation_Friendly"] = suggested_transformation_friendly
+        row["Classification Reason Rating"] = classification_reason_rating
+
         anns_df = pd.concat((anns_df, pd.DataFrame(row, index=[0])), ignore_index=True)
         anns_df.to_csv(anns_filepath, index=False)
-    
+
         next_idx = curr_idx + 1
         if next_idx < len(chunk_df):
             next_df_row = chunk_df.iloc[next_idx]
             return [next_idx, gr.update(interactive=False), next_df_row['text'], 
                     next_df_row['Neutral'], next_df_row['Formal'], next_df_row['Friendly'], next_df_row.get('Class', ''), 
                     [], '',
-                    None, '', None, '', None, '']
+                    None, '', None, '', None, '',
+                    next_df_row.get('Classification Reason', ''), None]
         else:
             return [curr_idx, gr.update(interactive=False), "End of dataset", 
                     "End of dataset", "End of dataset", "End of dataset", "End of dataset", 
                     [], "End of dataset",
-                    None, "End of dataset", None, "End of dataset", None, "End of dataset"]
-    
+                    None, "End of dataset", None, "End of dataset", None, "End of dataset", "End of dataset", "End of dataset"]
+
     # Function to enable or disable the Validate button based on ratings
-    def enable_button(rating_neutral_value, rating_formal_value, rating_friendly_value):
-        if all([rating_neutral_value, rating_formal_value, rating_friendly_value]):
+    def enable_button(rating_neutral_value, rating_formal_value, rating_friendly_value, classification_reason_rating_value):
+        if all([rating_neutral_value, rating_formal_value, rating_friendly_value, classification_reason_rating_value]):
             return gr.update(interactive=True)
         else:
             return gr.update(interactive=False)
-    
+
     with gr.Blocks(theme=gr.themes.Soft(), css=css) as demo:
         index = gr.Number(value=current_index, visible=False, precision=0)
-    
+
         gr.Markdown(f"#### Annotating: {dataset_filename}\n")
         with gr.Row():
             with gr.Column():
+                # Display the original text and class
                 text = gr.Textbox(label="Text", interactive=False, value=df_row['text'])
                 Class = gr.Textbox(label="Class", interactive=False, value=df_row.get('Class', ''))
+
+                # **New Section: Display 'Classification Reason'**
+                classification_reason = gr.Textbox(label="Classification Reason", interactive=False, value=df_row.get('Classification Reason', ''))
+
+                # **New Radio Buttons: 'Classification Reason Rating'**
+                classification_reason_rating = gr.Radio(
+                    ["Acceptable", "Partially Acceptable", "Not Acceptable", "SKIPPING"], 
+                    label="Classification Reason Rating"
+                )
+
+                # Suggested class and comments
                 suggested_class = gr.CheckboxGroup(
                     choices=[
                         "Hate Speech",
@@ -139,9 +157,9 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
                     ], 
                     label="Suggested Class"
                 )
-                # Added Comments Textbox under Suggested Class
                 comments = gr.Textbox(label="Comments")
-                # Initialize the Validate button as non-interactive (disabled)
+
+                # Validate button (will be enabled based on ratings)
                 eval_btn = gr.Button("Validate", interactive=False)
                 gr.Markdown("**Classes Definitions**:")
                 gr.Markdown("**[Hate Speech]**: Language that attacks or demeans individuals based on race, religion, gender, or other personal characteristics.")
@@ -153,66 +171,72 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
                 gr.Markdown("**[Harassment]**: Persistent or repeated language targeting or intimidating an individual or group.")
                 gr.Markdown("**[Manipulation or Coercion]**: Language intended to control, pressure, or exploit someone’s emotions or actions.")
                 gr.Markdown("**[Not Toxic]**: If the sentence is not toxic.")
-                gr.Markdown("**Ratings Definitions**:")
-                gr.Markdown("**Rating-A**: *Gold Standard* - The toxic text is rewritten to be as non-toxic as possible while perfectly preserving the original meaning, and the rewritten version aligns seamlessly with the target tone.")
-                gr.Markdown("**Rating-B**: *Silver Standard* - The toxic text is rewritten to be mostly non-toxic while largely preserving the original meaning, and the rewritten version approaches the target tone but may have minor imperfections.")
-                gr.Markdown("**Rating-F**: *Insufficient* - The toxic text remains inadequately rewritten, the meaning deviates significantly, or the rewritten version fails to achieve the target tone.")
-                gr.Markdown("**SKIPPING**: Skip this entry if you cannot provide a rating.")
+
 
             with gr.Column():
-                # Transformed Neutral
+                # Transformed texts and their ratings
                 transformed_neutral = gr.Textbox(value=df_row['Neutral'], label="Transformed Neutral", interactive=False)
                 rating_neutral = gr.Radio(
                     ["A", "B", "F", "SKIPPING"], 
                     label="Rating Neutral"
                 )
                 suggested_transformation_neutral = gr.Textbox(label="Suggested Transformation Neutral", interactive=True)
-    
-                # Transformed Formal
+
                 transformed_formal = gr.Textbox(value=df_row['Formal'], label="Transformed Formal", interactive=False)
                 rating_formal = gr.Radio(
                     ["A", "B", "F", "SKIPPING"], 
                     label="Rating Formal"
                 )
                 suggested_transformation_formal = gr.Textbox(label="Suggested Transformation Formal", interactive=True)
-    
-                # Transformed Friendly
+
                 transformed_friendly = gr.Textbox(value=df_row['Friendly'], label="Transformed Friendly", interactive=False)
                 rating_friendly = gr.Radio(
                     ["A", "B", "F", "SKIPPING"], 
                     label="Rating Friendly"
                 )
                 suggested_transformation_friendly = gr.Textbox(label="Suggested Transformation Friendly", interactive=True)
-    
-                # Trigger enable_button when any rating_radio value changes
+                gr.Markdown("**Ratings Definitions**:")
+                gr.Markdown("**Rating-A**: *Gold Standard* - The toxic text is rewritten to be as non-toxic as possible while perfectly preserving the original meaning, and the rewritten version aligns seamlessly with the target tone.")
+                gr.Markdown("**Rating-B**: *Silver Standard* - The toxic text is rewritten to be mostly non-toxic while largely preserving the original meaning, and the rewritten version approaches the target tone but may have minor imperfections.")
+                gr.Markdown("**Rating-F**: *Insufficient* - The toxic text remains inadequately rewritten, the meaning deviates significantly, or the rewritten version fails to achieve the target tone.")
+                gr.Markdown("**SKIPPING**: Skip this entry if you cannot provide a rating.")
+
+                # Function to update the Validate button based on ratings
                 def update_validate_button(*args):
-                    rating_neutral_value, rating_formal_value, rating_friendly_value = args
-                    return enable_button(rating_neutral_value, rating_formal_value, rating_friendly_value)
-    
+                    rating_neutral_value, rating_formal_value, rating_friendly_value, classification_reason_rating_value = args
+                    return enable_button(rating_neutral_value, rating_formal_value, rating_friendly_value, classification_reason_rating_value)
+
+                # Attach change events to ratings
                 rating_neutral.change(
                     update_validate_button,
-                    inputs=[rating_neutral, rating_formal, rating_friendly],
+                    inputs=[rating_neutral, rating_formal, rating_friendly, classification_reason_rating],
                     outputs=eval_btn
                 )
                 rating_formal.change(
                     update_validate_button,
-                    inputs=[rating_neutral, rating_formal, rating_friendly],
+                    inputs=[rating_neutral, rating_formal, rating_friendly, classification_reason_rating],
                     outputs=eval_btn
                 )
                 rating_friendly.change(
                     update_validate_button,
-                    inputs=[rating_neutral, rating_formal, rating_friendly],
+                    inputs=[rating_neutral, rating_formal, rating_friendly, classification_reason_rating],
                     outputs=eval_btn
                 )
-    
-            # Click event for Validate button
+                classification_reason_rating.change(
+                    update_validate_button,
+                    inputs=[rating_neutral, rating_formal, rating_friendly, classification_reason_rating],
+                    outputs=eval_btn
+                )
+
+            # Click event for the Validate button
             eval_btn.click(
                 store_annotation_and_get_next,
                 inputs=[
                     index, suggested_class, comments,
                     rating_neutral, suggested_transformation_neutral,
                     rating_formal, suggested_transformation_formal,
-                    rating_friendly, suggested_transformation_friendly
+                    rating_friendly, suggested_transformation_friendly,
+                    classification_reason_rating
                 ],
                 outputs=[
                     index, eval_btn, text,
@@ -220,11 +244,12 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
                     Class, suggested_class, comments,
                     rating_neutral, suggested_transformation_neutral,
                     rating_formal, suggested_transformation_formal,
-                    rating_friendly, suggested_transformation_friendly
+                    rating_friendly, suggested_transformation_friendly,
+                    classification_reason, classification_reason_rating
                 ]
             )
-    
+
         demo.launch()
-    
+
 if __name__ == "__main__":
     fire.Fire(main)
