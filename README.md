@@ -1,15 +1,17 @@
 # Data Annotation Tool For Detoxification Project
 
-This repository provides a Gradio-based annotation interface for labeling and rating transformed text data. The tool allows annotators to evaluate text transformations, suggest alternative transformations, classify texts into predefined categories, and provide comments.
+This repository provides a Gradio-based annotation interface for labeling and rating transformed text data. The tool allows annotators to evaluate text transformations, suggest alternative transformations, classify texts into predefined categories, rate classification reasons, and provide comments.
 
 ## Features
 
 - Load and display text examples from a CSV file.
+- Display classification reasons alongside texts.
 - Annotate texts using an interactive web interface powered by Gradio.
 - Rate transformed texts based on predefined criteria.
+- Rate the classification reasons of the texts.
 - Suggest alternative transformations for each text.
 - Classify texts into one or more predefined categories.
-- Save annotations to a CSV file for future analysis.
+- Save annotations, including ratings and classification reason ratings, to a CSV file for future analysis.
 - Resume annotations from where you left off.
 
 ## Table of Contents
@@ -92,16 +94,19 @@ If you don't have a `requirements.txt` file, you can create one with the above c
 Prepare a CSV file containing the text examples you want to annotate. The CSV file should have the following columns:
 
 - `text`: The original text to be annotated.
+- `Classification Reason` (optional but required for classification reason rating): The reason for the classification of the text.
 - `Neutral` (optional): The text transformed into a neutral tone.
 - `Formal` (optional): The text transformed into a formal tone.
 - `Friendly` (optional): The text transformed into a friendly tone.
 - `Class` (optional): The original class or category of the text.
 
+**Note**: The `Classification Reason` column is used to display additional information about the classification of the text, which you will also rate during annotation.
+
 Example of a CSV file (`examples.csv`):
 
 ```csv
-text,Neutral,Formal,Friendly,Class
-"This is a sample text.","Neutral version of text.","Formal version of text.","Friendly version of text.","Original Class"
+text,Classification Reason,Neutral,Formal,Friendly,Class
+"This is a sample text.","Reason for classification.","Neutral version of text.","Formal version of text.","Friendly version of text.","Original Class"
 ```
 
 ### Running the Annotation Interface
@@ -128,6 +133,8 @@ After running the script, a web browser window or tab should open automatically,
 
 - **Text**: Displays the original text to be annotated.
 - **Class**: Shows the original class of the text if provided.
+- **Classification Reason**: Displays the reason for the classification of the text.
+- **Classification Reason Rating**: Radio buttons to rate the acceptability of the classification reason.
 - **Suggested Class**: You can select one or more classes that you think are appropriate for the text.
 - **Comments**: A field to add any comments or notes about the text or transformation.
 - **Transformed Neutral/Formal/Friendly**: Shows the text transformed into Neutral, Formal, and Friendly tones.
@@ -140,42 +147,64 @@ After running the script, a web browser window or tab should open automatically,
 
    Read the original text provided in the **Text** field.
 
-2. **Review Transformed Texts**
+2. **Review the Classification Reason**
+
+   Examine the **Classification Reason** provided for the text.
+
+3. **Rate the Classification Reason**
+
+   Select a rating from the **Classification Reason Rating** radio buttons:
+
+   - **Acceptable**
+   - **Partially Acceptable**
+   - **Not Acceptable**
+   - **Skipping**
+
+4. **Review Transformed Texts**
 
    Examine the transformed versions in the **Transformed Neutral**, **Transformed Formal**, and **Transformed Friendly** fields.
 
-3. **Assign Ratings**
+5. **Assign Ratings to Transformed Texts**
 
    For each transformed text, select a rating based on the **Rating Definitions** provided below.
 
-4. **Suggest Transformations**
+6. **Suggest Transformations**
 
    If you have suggestions for improving the transformation, you can provide them in the **Suggested Transformation** fields for each tone.
 
-5. **Classify the Text**
+7. **Classify the Text**
 
    If applicable, select one or more classes from the **Suggested Class** options by checking the boxes.
 
-6. **Add Comments**
+8. **Add Comments**
 
    Provide any additional comments in the **Comments** field.
 
-7. **Validate**
+9. **Validate**
 
    Once all required fields are filled, click the **Validate** button to save the annotation and move to the next text.
 
-   - The **Validate** button will be disabled until ratings for all transformed texts are provided.
+   - The **Validate** button will be disabled until ratings for all transformed texts **and the classification reason** are provided.
 
-8. **Repeat**
+10. **Repeat**
 
-   Continue the process for each text until you reach the end of the dataset.
+    Continue the process for each text until you reach the end of the dataset.
 
 #### Rating Definitions
 
-- **Rating-A**: *Gold Standard* -  The toxic text is rewritten to be as non-toxic as possible while perfectly preserving the original meaning, and the rewritten version aligns seamlessly with the target tone.
+**For Transformed Texts:**
+
+- **Rating-A**: *Gold Standard* - The toxic text is rewritten to be as non-toxic as possible while perfectly preserving the original meaning, and the rewritten version aligns seamlessly with the target tone.
 - **Rating-B**: *Silver Standard* - The toxic text is rewritten to be mostly non-toxic while largely preserving the original meaning, and the rewritten version approaches the target tone but may have minor imperfections.
 - **Rating-F**: *Insufficient* - The toxic text remains inadequately rewritten, the meaning deviates significantly, or the rewritten version fails to achieve the target tone.
 - **SKIPPING**: Skip this entry if you cannot provide a rating.
+
+**For Classification Reason Rating:**
+
+- **Acceptable**: The classification reason is appropriate and accurately reflects the content of the text.
+- **Partially Acceptable**: The classification reason is somewhat appropriate but may lack clarity or completeness.
+- **Not Acceptable**: The classification reason is inappropriate, incorrect, or does not reflect the content of the text.
+- **Skipping**: Skip this entry if you cannot provide a rating.
 
 #### Class Definitions
 
@@ -198,8 +227,13 @@ After running the script, a web browser window or tab should open automatically,
   - `annotator`: The name of the annotator.
   - `suggested_class`: The classes suggested by the annotator.
   - `comments`: Any comments provided by the annotator.
-  - `Rating_Neutral/Formal/Friendly`: Ratings assigned to each transformed text.
-  - `Suggested_Transformation_Neutral/Formal/Friendly`: Suggested transformations for each tone.
+  - `Classification Reason Rating`: The rating assigned to the classification reason.
+  - `Rating_Neutral`: Rating assigned to the Neutral transformation.
+  - `Suggested_Transformation_Neutral`: Any suggested transformation for Neutral tone.
+  - `Rating_Formal`: Rating assigned to the Formal transformation.
+  - `Suggested_Transformation_Formal`: Any suggested transformation for Formal tone.
+  - `Rating_Friendly`: Rating assigned to the Friendly transformation.
+  - `Suggested_Transformation_Friendly`: Any suggested transformation for Friendly tone.
 
 ## Troubleshooting
 
