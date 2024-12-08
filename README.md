@@ -77,15 +77,6 @@ Install the required Python packages from the `requirements.txt` file using `pip
 pip install -r requirements.txt
 ```
 
-Ensure that the `requirements.txt` file contains the following packages:
-
-```txt
-pandas
-gradio
-fire
-```
-
-If you don't have a `requirements.txt` file, you can create one with the above content.
 
 ## Usage
 
