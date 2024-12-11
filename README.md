@@ -105,10 +105,9 @@ text,Classification Reason,Neutral,Formal,Friendly,Class
 Run the annotation interface using the following command:
 
 ```bash
-python script_name.py --annotator_name="Your Name" --examples_batch_folder="path/to/examples.csv"
+python src/main.py --annotator_name="Your Name" --examples_batch_folder="path/to/examples.csv"
 ```
 
-Replace `script_name.py` with the actual name of the script containing the provided code.
 
 #### Command-Line Arguments
 
