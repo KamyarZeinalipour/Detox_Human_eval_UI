@@ -40,7 +40,7 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
     df_row = chunk_df.iloc[current_index]
 
     # Function to store annotations and get the next data entry
-    def store_annotation_and_get_next(curr_idx, selected_classes, comments, 
+    def store_annotation_and_get_next(curr_idx, selected_classes, comments, selected_tone,
                                       rating_neutral, suggested_transformation_neutral,
                                       rating_formal, suggested_transformation_formal,
                                       rating_friendly, suggested_transformation_friendly):
@@ -50,7 +50,7 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
             # gr.warning("Please select ratings for all transformed texts.")
             return [curr_idx, gr.update(interactive=False), df_row['text'], 
                     df_row['Neutral'], df_row['Formal'], df_row['Friendly'], df_row.get('Class', ''), 
-                    selected_classes, comments, 
+                    selected_classes, comments, selected_tone,
                     rating_neutral, suggested_transformation_neutral,
                     rating_formal, suggested_transformation_formal,
                     rating_friendly, suggested_transformation_friendly]
@@ -76,7 +76,7 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
             anns_df = pd.read_csv(anns_filepath)
         else:
             cols = chunk_df.columns.tolist()
-            additional_cols = ["timestamp", "annotator", "suggested_class",  "comments",
+            additional_cols = ["timestamp", "annotator", "suggested_class", "tone_of_text", "comments",
                                "Rating_Neutral", "Suggested_Transformation_Neutral",
                                "Rating_Formal", "Suggested_Transformation_Formal",
                                "Rating_Friendly", "Suggested_Transformation_Friendly"]
@@ -87,6 +87,7 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
         row["timestamp"] = time.time()
         row["annotator"] = annotator_name
         row["suggested_class"] = suggested_class
+        row["tone_of_text"] = selected_tone
         row["comments"] = comments 
         row["Rating_Neutral"] = rating_neutral
         row["Suggested_Transformation_Neutral"] = suggested_transformation_neutral
@@ -103,12 +104,12 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
             next_df_row = chunk_df.iloc[next_idx]
             return [next_idx, gr.update(interactive=False), next_df_row['text'], 
                     next_df_row['Neutral'], next_df_row['Formal'], next_df_row['Friendly'], next_df_row.get('Class', ''), 
-                    [], '',
+                    [], '', None,
                     None, '', None, '', None, '']
         else:
             return [curr_idx, gr.update(interactive=False), "End of dataset", 
                     "End of dataset", "End of dataset", "End of dataset", "End of dataset", 
-                    [], "End of dataset",
+                    [], "End of dataset", None,
                     None, "End of dataset", None, "End of dataset", None, "End of dataset"]
 
     # Function to enable or disable the Validate button based on ratings
@@ -141,6 +142,10 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
                     label="Suggested Class"
                 )
                 comments = gr.Textbox(label="Comments")
+                tone_selection = gr.Radio(
+                    ['Neutral', 'Friendly', 'Formal'], 
+                    label='Tone of the Text'
+                )
 
                 # Validate button (will be enabled based on ratings)
                 eval_btn = gr.Button("Validate", interactive=False)
@@ -250,7 +255,7 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
             eval_btn.click(
                 store_annotation_and_get_next,
                 inputs=[
-                    index, suggested_class, comments,
+                    index, suggested_class, comments, tone_selection,
                     rating_neutral, suggested_transformation_neutral,
                     rating_formal, suggested_transformation_formal,
                     rating_friendly, suggested_transformation_friendly
@@ -258,7 +263,7 @@ def main(current_index: int = 0, annotator_name: str = "", examples_batch_folder
                 outputs=[
                     index, eval_btn, text,
                     transformed_neutral, transformed_formal, transformed_friendly, 
-                    Class, suggested_class, comments,
+                    Class, suggested_class, comments, tone_selection,
                     rating_neutral, suggested_transformation_neutral,
                     rating_formal, suggested_transformation_formal,
                     rating_friendly, suggested_transformation_friendly
