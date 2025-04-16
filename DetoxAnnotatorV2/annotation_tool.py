@@ -22,6 +22,10 @@ new_columns = {
     "annotator": "",
     "annotation_time": ""
 }
+# Optionally, add default for style_case if not already present.
+if "style_case" not in df.columns:
+    df["style_case"] = ""
+    
 for col, default in new_columns.items():
     if col not in df.columns:
         df[col] = default
@@ -52,11 +56,13 @@ def load_example(idx):
     """
     Given the index, load the texts and any stored annotation values.
     Also, start/reset the timer.
+    Returns:
+      comment_text, text_model1, text_model2, rating1, rating2, preferred, user_pref, style
     """
     global current_start_time
     if idx < 0 or idx >= len(df):
         # Defensive: if index out of range, return an error message.
-        return "Index out of range", "", "", None, None, None, None
+        return "Index out of range", "", "", None, None, None, None, ""
     row = df.loc[idx]
     current_start_time = time.time()  # start timer
     
@@ -67,7 +73,8 @@ def load_example(idx):
     rating2 = row["rating_model_detox_lora"] if row["rating_model_detox_lora"] != "" else None
     preferred = row["preferred_transformation"] if row["preferred_transformation"] != "" else None
     user_pref = row["user_preferred"] if row["user_preferred"] != "" else None
-    return comment_text, text_model1, text_model2, rating1, rating2, preferred, user_pref
+    style = row["style_case"] if row["style_case"] != "" else ""
+    return comment_text, text_model1, text_model2, rating1, rating2, preferred, user_pref, style
 
 def format_index_text(idx):
     """ Format the index display as 'Example X out of N'. """
@@ -98,10 +105,11 @@ def submit_annotation(idx, rating1, rating2, preferred, user_preferred):
     next_idx = idx + 1 if idx + 1 < len(df) else idx
 
     # Load the new example.
-    comment_text, text_model1, text_model2, saved_rating1, saved_rating2, saved_preferred, saved_user_pref = load_example(next_idx)
+    (comment_text, text_model1, text_model2, saved_rating1,
+     saved_rating2, saved_preferred, saved_user_pref, saved_style) = load_example(next_idx)
     return (next_idx, format_index_text(next_idx),
             comment_text, text_model1, text_model2,
-            saved_rating1, saved_rating2, saved_preferred, saved_user_pref,
+            saved_rating1, saved_rating2, saved_preferred, saved_user_pref, saved_style,
             f"Annotation took {annotation_duration:.2f} seconds.")
 
 def go_previous(current_idx):
@@ -109,10 +117,11 @@ def go_previous(current_idx):
     Step back one example index. If already at start (0), then stay there.
     """
     new_idx = current_idx - 1 if current_idx > 0 else 0
-    comment_text, text_model1, text_model2, saved_rating1, saved_rating2, saved_preferred, saved_user_pref = load_example(new_idx)
+    (comment_text, text_model1, text_model2, saved_rating1,
+     saved_rating2, saved_preferred, saved_user_pref, saved_style) = load_example(new_idx)
     return (new_idx, format_index_text(new_idx),
             comment_text, text_model1, text_model2,
-            saved_rating1, saved_rating2, saved_preferred, saved_user_pref)
+            saved_rating1, saved_rating2, saved_preferred, saved_user_pref, saved_style)
 
 # ----- BUILD THE GRADIO INTERFACE -----
 with gr.Blocks() as demo:
@@ -126,11 +135,13 @@ with gr.Blocks() as demo:
         with gr.Column():
             
             # Display the current example count.
-            current_index_txt = gr.Textbox(label="Current Example Index", interactive=False)
+            
             # Read-only textboxes.
+            style_text = gr.Textbox(label="Style", interactive=False)
             original_text = gr.Textbox(label="Original Text", interactive=False, lines=5)
             model1_text = gr.Textbox(label="Transformed Text (Model 1)", interactive=False, lines=5)
             model2_text = gr.Textbox(label="Transformed Text (Model 2)", interactive=False, lines=5)
+            
             
             # Display rating definitions addressing both toxicity reduction and meaning preservation.
 
@@ -160,20 +171,16 @@ with gr.Blocks() as demo:
     with gr.Row():
         prev_btn = gr.Button("Previous")
         submit_btn = gr.Button("Submit Annotation")
-            
-
-
-        
+    current_index_txt = gr.Textbox(label="Current Example Index", interactive=False)
     annotation_message = gr.Markdown("")
 
-    
     # Callback for submit.
     submit_btn.click(
         submit_annotation,
         inputs=[current_index_state, rating_model1, rating_model2, preferred_trans, user_pref],
         outputs=[current_index_state, current_index_txt,
                  original_text, model1_text, model2_text,
-                 rating_model1, rating_model2, preferred_trans, user_pref,
+                 rating_model1, rating_model2, preferred_trans, user_pref, style_text,
                  annotation_message]
     )
     
@@ -183,19 +190,20 @@ with gr.Blocks() as demo:
         inputs=current_index_state,
         outputs=[current_index_state, current_index_txt,
                  original_text, model1_text, model2_text,
-                 rating_model1, rating_model2, preferred_trans, user_pref]
+                 rating_model1, rating_model2, preferred_trans, user_pref, style_text]
     )
     
     # Load the initial example on startup.
     def load_initial():
         idx = find_resume_index()
-        comment_text, text_model1, text_model2, saved_rating1, saved_rating2, saved_preferred, saved_user_pref = load_example(idx)
+        (comment_text, text_model1, text_model2, saved_rating1,
+         saved_rating2, saved_preferred, saved_user_pref, saved_style) = load_example(idx)
         return (idx, format_index_text(idx),
                 comment_text, text_model1, text_model2,
-                saved_rating1, saved_rating2, saved_preferred, saved_user_pref, "")
+                saved_rating1, saved_rating2, saved_preferred, saved_user_pref, saved_style, "")
     
     demo.load(load_initial, inputs=[], outputs=[current_index_state, current_index_txt,
                                                   original_text, model1_text, model2_text,
-                                                  rating_model1, rating_model2, preferred_trans, user_pref, annotation_message])
+                                                  rating_model1, rating_model2, preferred_trans, user_pref, style_text, annotation_message])
     
 demo.launch()
