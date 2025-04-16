@@ -144,7 +144,7 @@ with gr.Blocks() as demo:
             preferred_trans = gr.Radio(choices=["Model 1", "Model 2"], label="Which one keeps the semantics better?", value=None)
             
             # Additional radio button for personal usage preference.
-            user_pref = gr.Radio(choices=["Model 1", "Model 2"], label="Which one would I prefer to use for personal usage?", value=None)
+            user_pref = gr.Radio(choices=["Model 1", "Model 2"], label="Which one would you prefer for personal usage?", value=None)
             rating_definition = gr.Markdown(
                                 """
                                 **Rating Definitions (considering both toxicity reduction and meaning preservation):**
