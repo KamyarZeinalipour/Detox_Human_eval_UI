@@ -32,20 +32,6 @@ pip install gradio pandas
 1. **Download or Clone the Code:**
    - Save the provided Python code into a file, for example `annotation_tool.py`.
 
-2. **Prepare Your CSV File:**
-   - Create a CSV file containing the examples you want to annotate.  
-   - Your CSV must have at least the following columns:
-     - **comment:** The original text to be annotated.
-     - **model_detox_mian:** The detoxified text from Model 1.
-     - **model_detox_lora:** The detoxified text from Model 2.
-   - Additional columns will be automatically created if they are missing, such as:
-     - `rating_model_detox_mian`
-     - `rating_model_detox_lora`
-     - `preferred_transformation`
-     - `user_preferred`
-     - `annotator`
-     - `annotation_time`
-
 ## Running the Tool
 
 1. **Start the Script:**
@@ -96,20 +82,22 @@ Each rating (A to E) is determined based on:
 
 The definitions are as follows:
 
-- **A: Outstanding**  
-  Detoxification drastically reduces toxicity while completely preserving the original meaning.
 
-- **B: Very Good**  
-  Significant toxicity reduction with nearly all of the original meaning intact.
 
-- **C: Good**  
-  Moderate toxicity reduction but with noticeable loss of some meaning.
+- **A: Excellent**  
+   Detoxified, meaning and original style preserved, and matches the target style perfectly.
 
-- **D: Fair**  
-  Limited toxicity reduction accompanied by a considerable compromise of the original meaning.
+- **B: Good**  
+  Mostly successful, with minor issues in one area (e.g., slight style shift or wording change). 
 
-- **E: Poor**  
-  Detoxification fails to reduce toxicity effectively and largely loses the original meaning.
+- **C: Fair**  
+ Adequate attempt, but moderate issues in meaning, style, detoxification, or target tone.
+
+- **D:  Poor**  
+  Major flaws in meaning or tone, or detoxification is incomplete or overdone.
+
+- **E: Very Poor**  
+  Meaning is lost, toxic content remains, or the output ignores the target style entirely. 
 
 ## Navigation and Saving
 
