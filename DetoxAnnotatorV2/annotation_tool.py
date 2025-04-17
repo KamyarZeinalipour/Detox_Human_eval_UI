@@ -159,14 +159,15 @@ with gr.Blocks() as demo:
             rating_definition = gr.Markdown(
                                 """
                                 **Rating Definitions (considering both toxicity reduction and meaning preservation):**
-                                - **A**: Outstanding – The detoxification drastically reduces toxicity while completely preserving the original meaning.
-                                - **B**: Very Good – Significant toxicity reduction with nearly all of the original meaning intact.
-                                - **C**: Good – Moderate toxicity reduction but with noticeable loss of some meaning.
-                                - **D**: Fair – Limited toxicity reduction and considerable compromise of the original meaning.
-                                - **E**: Poor – The detoxification fails to reduce toxicity adequately and largely loses the original meaning.
+                                - **A**:  Excellent -  Detoxified, meaning and original style preserved, and matches the target style perfectly.
+                                - **B**: Good -  Mostly successful, with minor issues in one area (e.g., slight style shift or wording change).
+                                - **C**: Fair - Adequate attempt, but moderate issues in meaning, style, detoxification, or target tone. 
+                                - **D**: Poor - Major flaws in meaning or tone, or detoxification is incomplete or overdone. 
+                                - **E**: Very Poor - Meaning is lost, toxic content remains, or the output ignores the target style entirely.
                                 """
                             )
             
+
         # Buttons for submission and going back.
     with gr.Row():
         prev_btn = gr.Button("Previous")
