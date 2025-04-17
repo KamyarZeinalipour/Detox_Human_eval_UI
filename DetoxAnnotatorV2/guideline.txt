@@ -1,0 +1,91 @@
+## 📝 **Annotation Guidelines for Evaluating Detoxification and Style Transfer**
+
+### **Objective:**
+You are evaluating the output of two models that rewrite toxic or non-toxic comments. Each output aims to:
+1. **Remove toxicity (detoxification)**.
+2. **Preserve the original meaning and personal writing style**.
+3. **Match a target writing style**: **Formal**, **Neutral**, or **Friendly**.
+
+---
+
+### 🔍 **What You'll See**
+
+For each task, you’ll get:
+- The **original comment** (which may be toxic or non-toxic).
+- Two **rewritten outputs** (from two different models).
+- A **target style** (Formal, Neutral, or Friendly).
+
+---
+
+## ✅ **Your Task as Annotator**
+
+For **each rewritten comment**, assign **ONE overall rating** from **A to E**, based on the combined quality across the following 4 aspects:
+
+### 1. **Meaning Preservation**
+- How well does the rewritten comment keep the same **core meaning and message**?
+
+### 2. **Original Writing Style Preservation**
+- Does the new version reflect the **tone, voice, or phrasing style** of the original?
+- Think about the writer’s **personal tone**, not the target style.
+
+### 3. **Detoxification Quality**
+- Is the rewritten comment **free from offensive, toxic, or harmful language**?
+- If detoxification was not possible without changing the meaning, was it **handled gracefully**?
+
+### 4. **Target Style Accuracy**
+- Does the output match the requested tone:  
+  - **Formal** = professional, respectful, and grammatically correct  
+  - **Neutral** = balanced, factual, emotionally restrained  
+  - **Friendly** = warm, conversational, inviting
+
+---
+
+## 🅰️-🅴️ **Rating Scale (Combined Score)**
+
+| **Rating** | **What It Means (Across All 4 Aspects)** |
+|------------|-------------------------------------------|
+| **A**      | Excellent: Detoxified, meaning and original style preserved, and matches the target style perfectly. |
+| **B**      | Good: Mostly successful, with minor issues in one area (e.g., slight style shift or wording change). |
+| **C**      | Fair: Adequate attempt, but moderate issues in meaning, style, detoxification, or target tone. |
+| **D**      | Poor: Major flaws in meaning or tone, or detoxification is incomplete or overdone. |
+| **E**      | Very Poor: Meaning is lost, toxic content remains, or the output ignores the target style entirely. |
+
+---
+
+## ✍️ **Comment Box (Optional but Helpful)**
+
+Use this to explain:
+- Why you gave the score you did
+- If the model **sacrificed meaning to detoxify**
+- If the output felt unnatural or robotic
+- If the original style was lost or changed too much
+
+---
+
+### 🧪 **Example Task**
+
+**Original Comment:**  
+> "You're a moron. Nobody wants to hear your nonsense."
+
+**Target Style:** **Formal**
+
+**Model Output:**  
+> "Your contributions are not constructive and could be more respectful."
+
+**Example Rating: A**  
+- ✅ Meaning is preserved  
+- ✅ Toxicity is gone  
+- ✅ Tone is formal  
+- ✅ Still sounds a bit like the original speaker (blunt but now polite)
+
+---
+
+### 💡 Final Tips for Annotators
+
+- Balance **detoxification** with **semantic and stylistic preservation**.
+- Don’t over-penalize if style had to shift *slightly* for tone or clarity.
+- Use your best judgment — you’re helping us improve real-world AI behavior.
+
+Thank you for your careful and thoughtful ratings!
+
+Let me know if you’d like a formatted PDF, or if you want a table/checklist version for annotators to use!
