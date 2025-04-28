@@ -2,209 +2,250 @@ import gradio as gr
 import pandas as pd
 import time
 import os
+import random
 
 # ----- CONFIGURATION -----
 CSV_PATH = input("Enter your file name: ")
 
-# ----- GLOBALS -----
-# Load the CSV file.
+# ----- LOAD OR INITIALIZE DATAFRAME -----
 if os.path.exists(CSV_PATH):
     df = pd.read_csv(CSV_PATH)
 else:
     raise FileNotFoundError(f"CSV file not found at {CSV_PATH}")
 
-# Ensure the annotation columns exist.
-new_columns = {
+# Ensure all required columns exist
+base_columns = {
     "rating_model_detox_mian": "",
     "rating_model_detox_lora": "",
     "preferred_transformation": "",
-    "user_preferred": "",  # New column for personal usage preference
+    "user_preferred": "",
     "annotator": "",
     "annotation_time": ""
 }
-# Optionally, add default for style_case if not already present.
+# style-case and swap flag
 if "style_case" not in df.columns:
     df["style_case"] = ""
-    
-for col, default in new_columns.items():
+if "swap_flag" not in df.columns:
+    df["swap_flag"] = ""  # will store True/False per row
+
+# add any missing base columns
+for col, default in base_columns.items():
     if col not in df.columns:
         df[col] = default
 
-# Get total examples count.
+# total examples count
 TOTAL_EXAMPLES = len(df)
 
-# Prompt user for annotator name on the terminal.
+# Prompt for annotator name
 annotator = input("Enter your annotator name: ").strip()
 while annotator == "":
     annotator = input("Please enter a valid annotator name: ").strip()
 
-# A variable to hold the start time for each annotation.
+# track timer
 current_start_time = None
+
 
 def find_resume_index():
     """
-    Return the first row that has not been annotated (i.e. an empty rating).
-    If all rows have annotations, return the last row.
+    Find the first index where ratings are incomplete.
     """
     for i, row in df.iterrows():
-        if (pd.isna(row['rating_model_detox_mian']) or row['rating_model_detox_mian'] == "") \
-           or (pd.isna(row['rating_model_detox_lora']) or row['rating_model_detox_lora'] == ""):
+        if pd.isna(row['rating_model_detox_mian']) or row['rating_model_detox_mian'] == "" \
+           or pd.isna(row['rating_model_detox_lora']) or row['rating_model_detox_lora'] == "":
             return i
     return len(df) - 1
 
+
 def load_example(idx):
     """
-    Given the index, load the texts and any stored annotation values.
-    Also, start/reset the timer.
-    Returns:
-      comment_text, text_model1, text_model2, rating1, rating2, preferred, user_pref, style
+    Load the example at idx, decide swap_flag if needed, and return display values.
     """
-    global current_start_time
-    if idx < 0 or idx >= len(df):
-        # Defensive: if index out of range, return an error message.
-        return "Index out of range", "", "", None, None, None, None, ""
+    global current_start_time, df
+    # decide swap once
+    if df.at[idx, 'swap_flag'] == "":
+        df.at[idx, 'swap_flag'] = random.choice([True, False])
+        df.to_csv(CSV_PATH, index=False)
+
+    swapped = df.at[idx, 'swap_flag']
     row = df.loc[idx]
-    current_start_time = time.time()  # start timer
-    
-    comment_text = row["comment"]
-    text_model1 = row["model_detox_mian"]
-    text_model2 = row["model_detox_lora"]
-    rating1 = row["rating_model_detox_mian"] if row["rating_model_detox_mian"] != "" else None
-    rating2 = row["rating_model_detox_lora"] if row["rating_model_detox_lora"] != "" else None
-    preferred = row["preferred_transformation"] if row["preferred_transformation"] != "" else None
-    user_pref = row["user_preferred"] if row["user_preferred"] != "" else None
-    style = row["style_case"] if row["style_case"] != "" else ""
-    return comment_text, text_model1, text_model2, rating1, rating2, preferred, user_pref, style
+    # start timing
+    current_start_time = time.time()
+
+    # raw texts
+    original = row['comment']
+    m1 = row['model_detox_mian']
+    m2 = row['model_detox_lora']
+
+    # load saved ratings/preferences according to swap
+    if swapped:
+        text_model1, text_model2 = m2, m1
+        r1 = row['rating_model_detox_lora'] or None
+        r2 = row['rating_model_detox_mian'] or None
+        # flip any saved preferences
+        pref = None
+        upref = None
+        if row['preferred_transformation']:
+            pref = 'Model 1' if row['preferred_transformation']=='Model 2' else 'Model 2'
+        if row['user_preferred']:
+            upref = 'Model 1' if row['user_preferred']=='Model 2' else 'Model 2'
+    else:
+        text_model1, text_model2 = m1, m2
+        r1 = row['rating_model_detox_mian'] or None
+        r2 = row['rating_model_detox_lora'] or None
+        pref = row['preferred_transformation'] or None
+        upref = row['user_preferred'] or None
+
+    return (
+        original,
+        text_model1,
+        text_model2,
+        r1,
+        r2,
+        pref,
+        upref,
+        row.get('style_case', "")
+    )
+
 
 def format_index_text(idx):
-    """ Format the index display as 'Example X out of N'. """
     return f"Example {idx+1} out of {TOTAL_EXAMPLES}"
+
 
 def submit_annotation(idx, rating1, rating2, preferred, user_preferred):
     """
-    On clicking submit, record the elapsed time and update the CSV.
-    Then load the next annotation example.
+    Save the annotation (mapping back if swapped), then load next.
     """
     global current_start_time, df, annotator
-    if current_start_time is None:
-        annotation_duration = 0
+    elapsed = time.time() - (current_start_time or time.time())
+    swapped = df.at[idx, 'swap_flag']
+
+    # map ratings back to true columns
+    if swapped:
+        df.at[idx, 'rating_model_detox_lora'] = rating1 or ""
+        df.at[idx, 'rating_model_detox_mian'] = rating2 or ""
+        # flip user prefs back
+        real_pref = ''
+        real_user = ''
+        if preferred:
+            real_pref = 'Model 2' if preferred=='Model 1' else 'Model 1'
+        if user_preferred:
+            real_user = 'Model 2' if user_preferred=='Model 1' else 'Model 1'
+        df.at[idx, 'preferred_transformation'] = real_pref
+        df.at[idx, 'user_preferred'] = real_user
     else:
-        annotation_duration = time.time() - current_start_time
+        df.at[idx, 'rating_model_detox_mian'] = rating1 or ""
+        df.at[idx, 'rating_model_detox_lora'] = rating2 or ""
+        df.at[idx, 'preferred_transformation'] = preferred or ""
+        df.at[idx, 'user_preferred'] = user_preferred or ""
 
-    # Update the dataframe with the new annotations.
-    df.at[idx, "rating_model_detox_mian"] = rating1 if rating1 is not None else ""
-    df.at[idx, "rating_model_detox_lora"] = rating2 if rating2 is not None else ""
-    df.at[idx, "preferred_transformation"] = preferred if preferred is not None else ""
-    df.at[idx, "user_preferred"] = user_preferred if user_preferred is not None else ""
-    df.at[idx, "annotator"] = annotator
-    df.at[idx, "annotation_time"] = annotation_duration
-
+    df.at[idx, 'annotator'] = annotator
+    df.at[idx, 'annotation_time'] = elapsed
     df.to_csv(CSV_PATH, index=False)
-    
-    # Advance to the next example (if exists)
-    next_idx = idx + 1 if idx + 1 < len(df) else idx
 
-    # Load the new example.
-    (comment_text, text_model1, text_model2, saved_rating1,
-     saved_rating2, saved_preferred, saved_user_pref, saved_style) = load_example(next_idx)
-    return (next_idx, format_index_text(next_idx),
-            comment_text, text_model1, text_model2,
-            saved_rating1, saved_rating2, saved_preferred, saved_user_pref, saved_style,
-            f"Annotation took {annotation_duration:.2f} seconds.")
+    # advance
+    next_idx = idx+1 if idx+1 < len(df) else idx
+    (orig, t1, t2, sr1, sr2, sp, sup, style) = load_example(next_idx)
+    return (
+        next_idx,
+        format_index_text(next_idx),
+        orig,
+        t1,
+        t2,
+        sr1,
+        sr2,
+        sp,
+        sup,
+        style,
+        f"Annotation took {elapsed:.2f} seconds."
+    )
 
-def go_previous(current_idx):
+
+def go_previous(idx):
     """
-    Step back one example index. If already at start (0), then stay there.
+    Move back one example and reload.
     """
-    new_idx = current_idx - 1 if current_idx > 0 else 0
-    (comment_text, text_model1, text_model2, saved_rating1,
-     saved_rating2, saved_preferred, saved_user_pref, saved_style) = load_example(new_idx)
-    return (new_idx, format_index_text(new_idx),
-            comment_text, text_model1, text_model2,
-            saved_rating1, saved_rating2, saved_preferred, saved_user_pref, saved_style)
+    prev_idx = max(0, idx-1)
+    (orig, t1, t2, r1, r2, p, up, style) = load_example(prev_idx)
+    return (
+        prev_idx,
+        format_index_text(prev_idx),
+        orig,
+        t1,
+        t2,
+        r1,
+        r2,
+        p,
+        up,
+        style
+    )
 
 # ----- BUILD THE GRADIO INTERFACE -----
 with gr.Blocks() as demo:
-    
-    # State variable to save the current row index.
     current_index_state = gr.State(find_resume_index())
-    
     gr.Markdown("## Annotation Tool")
     gr.Markdown(f"Annotator: {annotator}")
+
     with gr.Row():
         with gr.Column():
-            
-            # Display the current example count.
-            
-            # Read-only textboxes.
-            style_text = gr.Textbox(label="Style", interactive=False)
+            style_text    = gr.Textbox(label="Style", interactive=False)
             original_text = gr.Textbox(label="Original Text", interactive=False, lines=5)
-            model1_text = gr.Textbox(label="Transformed Text (Model 1)", interactive=False, lines=5)
-            model2_text = gr.Textbox(label="Transformed Text (Model 2)", interactive=False, lines=5)
-            
-            
-            # Display rating definitions addressing both toxicity reduction and meaning preservation.
+            model1_text   = gr.Textbox(label="Transformed Text (Model 1)", interactive=False, lines=5)
+            model2_text   = gr.Textbox(label="Transformed Text (Model 2)", interactive=False, lines=5)
 
         with gr.Column():
-            # Radio buttons for ratings.
-            rating_options = ["A", "B", "C", "D", "E"]
-            rating_model1 = gr.Radio(choices=rating_options, label="Rating for Model 1", value=None)
-            rating_model2 = gr.Radio(choices=rating_options, label="Rating for Model 2", value=None)
-            
-            # Radio button for semantic preservation judgment.
-            preferred_trans = gr.Radio(choices=["Model 1", "Model 2"], label="Which one keeps the semantics better?", value=None)
-            
-            # Additional radio button for personal usage preference.
-            user_pref = gr.Radio(choices=["Model 1", "Model 2"], label="Which one would you prefer for personal usage?", value=None)
-            rating_definition = gr.Markdown(
-                                """
-                                **Rating Definitions (considering both toxicity reduction and meaning preservation):**
-                                - **A**:  Excellent -  Detoxified, meaning and original style preserved, and matches the target style perfectly.
-                                - **B**: Good -  Mostly successful, with minor issues in one area (e.g., slight style shift or wording change).
-                                - **C**: Fair - Adequate attempt, but moderate issues in meaning, style, detoxification, or target tone. 
-                                - **D**: Poor - Major flaws in meaning or tone, or detoxification is incomplete or overdone. 
-                                - **E**: Very Poor - Meaning is lost, toxic content remains, or the output ignores the target style entirely.
-                                """
-                            )
-            
+            rating_options = ["A","B","C","D","E"]
+            rating_model1  = gr.Radio(rating_options, label="Rating for Model 1", value=None)
+            rating_model2  = gr.Radio(rating_options, label="Rating for Model 2", value=None)
+            preferred_trans= gr.Radio(["Model 1","Model 2"], label="Which one keeps the semantics better?", value=None)
+            user_pref      = gr.Radio(["Model 1","Model 2"], label="Which one would you prefer for personal usage?", value=None)
+            gr.Markdown(
+                """
+                **Rating Definitions:**
+                - **A**: Excellent - detoxified and preserves meaning/style.
+                - **B**: Good - minor issues.
+                - **C**: Fair - moderate issues.
+                - **D**: Poor - major flaws.
+                - **E**: Very Poor - meaning lost or toxic content remains.
+                """
+            )
 
-        # Buttons for submission and going back.
     with gr.Row():
-        prev_btn = gr.Button("Previous")
+        prev_btn   = gr.Button("Previous")
         submit_btn = gr.Button("Submit Annotation")
     current_index_txt = gr.Textbox(label="Current Example Index", interactive=False)
-    annotation_message = gr.Markdown("")
+    annotation_msg    = gr.Markdown("")
 
-    # Callback for submit.
+    # callbacks
     submit_btn.click(
         submit_annotation,
         inputs=[current_index_state, rating_model1, rating_model2, preferred_trans, user_pref],
         outputs=[current_index_state, current_index_txt,
                  original_text, model1_text, model2_text,
-                 rating_model1, rating_model2, preferred_trans, user_pref, style_text,
-                 annotation_message]
+                 rating_model1, rating_model2, preferred_trans, user_pref,
+                 style_text, annotation_msg]
     )
-    
-    # Callback for previous.
     prev_btn.click(
         go_previous,
         inputs=current_index_state,
         outputs=[current_index_state, current_index_txt,
                  original_text, model1_text, model2_text,
-                 rating_model1, rating_model2, preferred_trans, user_pref, style_text]
+                 rating_model1, rating_model2, preferred_trans, user_pref,
+                 style_text]
     )
-    
-    # Load the initial example on startup.
+
     def load_initial():
         idx = find_resume_index()
-        (comment_text, text_model1, text_model2, saved_rating1,
-         saved_rating2, saved_preferred, saved_user_pref, saved_style) = load_example(idx)
-        return (idx, format_index_text(idx),
-                comment_text, text_model1, text_model2,
-                saved_rating1, saved_rating2, saved_preferred, saved_user_pref, saved_style, "")
-    
-    demo.load(load_initial, inputs=[], outputs=[current_index_state, current_index_txt,
-                                                  original_text, model1_text, model2_text,
-                                                  rating_model1, rating_model2, preferred_trans, user_pref, style_text, annotation_message])
-    
-demo.launch()
+        (orig, t1, t2, r1, r2, p, up, style) = load_example(idx)
+        return (idx, format_index_text(idx), orig, t1, t2, r1, r2, p, up, style, "")
+
+    demo.load(
+        load_initial,
+        inputs=[],
+        outputs=[current_index_state, current_index_txt,
+                 original_text, model1_text, model2_text,
+                 rating_model1, rating_model2, preferred_trans, user_pref,
+                 style_text, annotation_msg]
+    )
+
+if __name__ == "__main__":
+    demo.launch()
